@@ -45,20 +45,20 @@ module "vpc" {
   source        = "./modules/vpc"
   name          = "blink"
   cidr          = var.vpc_cidr
-  ingress_ports = var.test_app_ingress_ports
+  ingress_ports = var.blink_test_ingress_ports
 }
 
 # ============================================
-# Security Group: test_app
+# Security Group: blink_test
 # ============================================
 
-resource "aws_security_group" "test_app" {
-  name        = "blink-test_app-sg"
-  description = "Security group for service test_app"
+resource "aws_security_group" "blink_test" {
+  name        = "blink-blink_test-sg"
+  description = "Security group for service blink_test"
   vpc_id      = module.vpc.vpc_id
 
   dynamic "ingress" {
-    for_each = var.test_app_ingress_ports
+    for_each = var.blink_test_ingress_ports
     content {
       from_port   = ingress.value
       to_port     = ingress.value
@@ -77,26 +77,26 @@ resource "aws_security_group" "test_app" {
   }
 
   tags = {
-    Name      = "blink-test_app-sg"
-    Service   = "test_app"
+    Name      = "blink-blink_test-sg"
+    Service   = "blink_test"
     ManagedBy = "blink"
   }
 }
 
 # ============================================
-# Service: test_app
+# Service: blink_test
 # ============================================
 
-module "service_test_app" {
+module "service_blink_test" {
   source = "./modules/ec2"
 
-  service_name         = "test_app"
-  instance_type        = var.test_app_instance_type
+  service_name         = "blink_test"
+  instance_type        = var.blink_test_instance_type
   vpc_id               = module.vpc.vpc_id
   subnet_id            = module.vpc.public_subnet_id
-  security_group_id    = aws_security_group.test_app.id
+  security_group_id    = aws_security_group.blink_test.id
   iam_instance_profile = module.iam.instance_profile_name
-  use_elastic_ip       = var.test_app_use_elastic_ip
+  use_elastic_ip       = var.blink_test_use_elastic_ip
 }
 
 
@@ -109,17 +109,17 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
-output "service_test_app_ip" {
+output "service_blink_test_ip" {
   description = "Service public IP"
-  value       = module.service_test_app.public_ip
+  value       = module.service_blink_test.public_ip
 }
 
-output "service_test_app_instance_id" {
+output "service_blink_test_instance_id" {
   description = "Service EC2 instance ID (for SSM)"
-  value       = module.service_test_app.instance_id
+  value       = module.service_blink_test.instance_id
 }
 
-output "service_test_app_url" {
+output "service_blink_test_url" {
   description = "Service URL"
-  value       = "http://${module.service_test_app.public_ip}:3000"
+  value       = "http://${module.service_blink_test.public_ip}:3000"
 }
