@@ -5,7 +5,7 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "ap-south-1"
+  default     = "us-east-1"
 }
 
 variable "environment" {
@@ -33,23 +33,23 @@ variable "base_domain" {
 }
 
 # ============================================
-# Per-Service Variables: test_app
+# Per-Service Variables: blink_test
 # ============================================
 
-variable "test_app_instance_type" {
-  description = "EC2 instance type for test_app"
+variable "blink_test_instance_type" {
+  description = "EC2 instance type for blink_test"
   type        = string
   default     = "t3.small"
 }
 
-variable "test_app_ingress_ports" {
-  description = "Ports to open for test_app"
+variable "blink_test_ingress_ports" {
+  description = "Ports to open for blink_test"
   type        = list(number)
-  default     = [80,443,3000]
+  default     = [80,443,22]
 }
 
-variable "test_app_use_elastic_ip" {
-  description = "Use Elastic IP for test_app"
+variable "blink_test_use_elastic_ip" {
+  description = "Use Elastic IP for blink_test"
   type        = bool
   default     = true
 }
