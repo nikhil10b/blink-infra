@@ -80,21 +80,30 @@ resource "aws_ssm_parameter" "db_password" {
   name  = "/blink/${var.name}/db_password"
   type  = "SecureString"
   value = random_password.db.result
-  tags  = { ManagedBy = "blink"; Service = var.name }
+  tags = {
+    ManagedBy = "blink"
+    Service   = var.name
+  }
 }
 
 resource "aws_ssm_parameter" "db_endpoint" {
   name  = "/blink/${var.name}/db_endpoint"
   type  = "String"
   value = aws_db_instance.this.address
-  tags  = { ManagedBy = "blink"; Service = var.name }
+  tags = {
+    ManagedBy = "blink"
+    Service   = var.name
+  }
 }
 
 resource "aws_ssm_parameter" "db_port" {
   name  = "/blink/${var.name}/db_port"
   type  = "String"
   value = tostring(aws_db_instance.this.port)
-  tags  = { ManagedBy = "blink"; Service = var.name }
+  tags = {
+    ManagedBy = "blink"
+    Service   = var.name
+  }
 }
 
 resource "aws_db_subnet_group" "this" {
@@ -134,7 +143,7 @@ resource "aws_security_group" "this" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier        = "blink-${var.name}"
+  identifier        = "blink-${replace(var.name, "_", "-")}"
   engine            = var.engine
   engine_version    = var.engine_version
   instance_class    = var.instance_class
@@ -151,7 +160,7 @@ resource "aws_db_instance" "this" {
   multi_az               = var.multi_az
 
   skip_final_snapshot       = false
-  final_snapshot_identifier = "blink-${var.name}-final"
+  final_snapshot_identifier = "blink-${replace(var.name, "_", "-")}-final"
   deletion_protection       = false
   storage_encrypted         = true
   backup_retention_period   = 7
