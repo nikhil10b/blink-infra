@@ -93,3 +93,25 @@ variable "c_db_db_multi_az" {
   type        = bool
   default     = false
 }
+
+# ============================================
+# Per-Service Variables: auto_test
+# ============================================
+
+variable "auto_test_instance_type" {
+  description = "EC2 instance type for auto_test"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "auto_test_ingress_ports" {
+  description = "Ports to open for auto_test"
+  type        = list(number)
+  default     = [80,443,22]
+}
+
+variable "auto_test_use_elastic_ip" {
+  description = "Use Elastic IP for auto_test"
+  type        = bool
+  default     = true
+}

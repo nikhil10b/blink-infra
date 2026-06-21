@@ -159,7 +159,84 @@ output "db_c_db_port" {
   value       = module.db_c_db.port
 }
 
+
+# Service Module Block
+#
+# Appended to main.tf for each subsequent service.
+# Variables for this service are appended to variables.tf separately.
+
+# ============================================
+# Security Group: auto_test
+# (per-service — independent ports from other services)
+# ============================================
+
+resource "aws_security_group" "auto_test" {
+  name        = "blink-auto_test-sg"
+  description = "Security group for service auto_test"
+  vpc_id      = module.vpc.vpc_id
+
+  dynamic "ingress" {
+    for_each = var.auto_test_ingress_ports
+    content {
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "Port ${ingress.value}"
+    }
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound"
+  }
+
+  tags = {
+    Name      = "blink-auto_test-sg"
+    Service   = "auto_test"
+    ManagedBy = "blink"
+  }
+}
+
+# ============================================
+# Service: auto_test
+# ============================================
+
+module "service_auto_test" {
+  source = "./modules/ec2"
+
+  service_name         = "auto_test"
+  instance_type        = var.auto_test_instance_type
+  vpc_id               = module.vpc.vpc_id
+  subnet_id            = module.vpc.public_subnet_id
+  security_group_id    = aws_security_group.auto_test.id
+  iam_instance_profile = module.iam.instance_profile_name
+  use_elastic_ip       = var.auto_test_use_elastic_ip
+}
+
+
+
 output "db_c_db_password_ssm" {
   description = "SSM Parameter Store path containing DB password for c_db"
   value       = module.db_c_db.db_password_ssm_path
+}
+
+output "service_auto_test_ip" {
+  description = "Service public IP"
+  value       = module.service_auto_test.public_ip
+}
+
+
+output "service_auto_test_instance_id" {
+  description = "Service EC2 instance ID (for SSM)"
+  value       = module.service_auto_test.instance_id
+}
+
+
+output "service_auto_test_url" {
+  description = "Service URL"
+  value       = "http://${module.service_auto_test.public_ip}:3000"
 }
