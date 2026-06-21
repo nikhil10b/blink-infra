@@ -1,6 +1,6 @@
 #!/bin/bash
 # User Data Script for EC2 Instance
-# Installs Docker, docker-compose, git, and SSM agent
+# Installs Docker, git, and SSM agent
 
 set -e
 
@@ -14,12 +14,6 @@ systemctl enable docker
 
 # Add ec2-user to docker group
 usermod -a -G docker ec2-user
-
-# Install docker-compose
-DOCKER_COMPOSE_VERSION="v2.24.0"
-curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
-ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 # Install git
 yum install git -y
@@ -41,9 +35,10 @@ set -e
 
 REPO_URL=$1
 APP_DIR=$2
+PORT=${3:-3000}
 
 if [ -z "$REPO_URL" ] || [ -z "$APP_DIR" ]; then
-    echo "Usage: deploy.sh <repo_url> <app_dir>"
+    echo "Usage: deploy.sh <repo_url> <app_dir> [port]"
     exit 1
 fi
 
@@ -53,17 +48,20 @@ if [ -d "$APP_DIR" ]; then
     echo "Updating existing app..."
     cd "$APP_DIR"
     git pull
-    docker-compose down || true
-    docker-compose up --build -d
+    docker build -t "${APP_DIR}:latest" .
+    docker stop "$APP_DIR" 2>/dev/null || true
+    docker rm "$APP_DIR" 2>/dev/null || true
+    docker run -d --name "$APP_DIR" -p "${PORT}:${PORT}" --restart unless-stopped "${APP_DIR}:latest"
 else
     echo "First time deploy..."
     git clone "$REPO_URL" "$APP_DIR"
     cd "$APP_DIR"
-    docker-compose up --build -d
+    docker build -t "${APP_DIR}:latest" .
+    docker run -d --name "$APP_DIR" -p "${PORT}:${PORT}" --restart unless-stopped "${APP_DIR}:latest"
 fi
 
 echo "Deploy complete!"
-docker-compose ps
+docker ps | grep "$APP_DIR"
 EOF
 
 chmod +x /home/ec2-user/deploy.sh
