@@ -39,9 +39,9 @@ variable "engine" {
 }
 
 variable "engine_version" {
-  description = "Engine version (e.g. 15.4 for postgres, 8.0.35 for mysql)"
+  description = "Engine major version (e.g. 15 for postgres, 8.0 for mysql) — AWS picks latest minor"
   type        = string
-  default     = "15.4"
+  default     = "15"
 }
 
 variable "instance_class" {
